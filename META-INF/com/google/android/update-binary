@@ -1,0 +1,158 @@
+#!/sbin/sh
+
+######
+# INIT
+######
+
+umask 0022
+
+# Global vars
+TMPDIR="/dev/tmp"
+PERSISTDIR="/sbin/.magisk/mirror/persist"
+
+rm -rf "$TMPDIR" 2>/dev/null
+mkdir -p "$TMPDIR"
+
+# Echo before loading util_functions
+ui_print() { 
+  echo "$1"
+}
+
+load_vksel() {
+  source "$MODPATH/addon/Volume-Key-Selector/install.sh"
+}
+
+rmtouch() {
+  [[ -e "$1" ]] && rm -rf "$1" 2>/dev/null
+}
+
+####################
+# SETUP ENVIRONMENT
+####################
+
+OUTFD=$2
+ZIPFILE=$3
+
+mount /data 2>/dev/null
+
+# Load utility functions
+source "/data/adb/magisk/util_functions.sh"
+
+# Preperation for flashable zips
+setup_flashable
+
+# Mount partitions
+mount_partitions
+
+# Detect version and architecture
+api_level_arch_detect
+
+# Setup busybox and binaries
+$BOOTMODE && boot_actions || recovery_actions
+
+##############
+# PREPARATION
+##############
+
+# Extract prop file
+unzip -o "$ZIPFILE" module.prop -d $TMPDIR >&2
+[[ ! -f "$TMPDIR/module.prop" ]] && abort "[!] Unable to extract zip file!"
+
+# Mod vars
+NVBASE="/data/adb"
+$BOOTMODE && MODDIRNAME=modules_update || MODDIRNAME=modules
+MODULEROOT="$NVBASE/$MODDIRNAME"
+MODID=$(grep_prop "id" "$TMPDIR/module.prop")
+MODPATH="$MODULEROOT/$MODID"
+MODNAME=$(grep_prop "name" "$TMPDIR/module.prop")
+
+# Create mod paths
+rm -rf "$MODPATH" 2>/dev/null
+mkdir -p "$MODPATH"
+
+##############
+# INSTALLATION
+##############
+
+# Extract to $MODPATH
+unzip -o "$ZIPFILE" -d "$MODPATH" >&2
+
+# Give executable perms to sqlite3 binary
+chmod 0777 "$MODPATH/sqlite3"
+
+# Set sqlite3 to $PATH
+export PATH="$MODPATH:$PATH"
+
+# Load install script
+source "$MODPATH/setup.sh"
+
+# Remove all old files before doing installation if want to
+if [[ "$CLEANSERVICE" == "true" ]]; then
+  rm -rf /data/adb/modules/${MODID}/*
+fi
+
+# Enable debugging if true
+if [[ "$DEBUG" == "true" ]]; then
+  set -x
+else
+  set +x
+fi
+
+# Print mod info
+info_print
+
+# Auto vskel load
+if [[ "$AUTOVKSEL" == "true" ]]; then
+  load_vksel
+fi
+
+# Main
+int_main
+
+# Skip mount
+if [[ "$SKIPMOUNT" == "true" ]]; then
+  touch "$MODPATH/skip_mount"
+fi
+
+# Set permissions
+set_permissions
+
+# Do cleanup
+do_cleanup
+
+# Handle replace folders
+for TARGET in $REPLACE; do
+#  ui_print "[*] Replace target: $TARGET"
+  mktouch "$MODPATH$TARGET/.replace"
+done
+
+if $BOOTMODE; then
+  # Update info for Magisk app
+  mktouch $NVBASE/modules/$MODID/update
+  cp -af "$MODPATH/module.prop" "$NVBASE/modules/$MODID/module.prop"
+fi
+
+# Copy over custom sepolicy rules
+if [[ -f "$MODPATH/sepolicy.rule" ]]; then
+  ui_print "[*] Installing custom sepolicy rules"
+  copy_sepolicy_rules
+fi
+
+# Remove stuffs that don't belong to modules
+rmtouch "$MODPATH/META-INF"
+rmtouch "$MODPATH/addon"
+rmtouch "$MODPATH/setup.sh"
+rmtouch "$MODPATH/LICENSE"
+rmtouch "$MODPATH/README.md"
+rmtouch "$MODPATH/system/placeholder"
+
+##############
+# Finalizing
+##############
+
+cd /
+if ! $BOOTMODE; then
+  recovery_cleanup
+fi
+rm -rf "$TMPDIR"
+exit 0
