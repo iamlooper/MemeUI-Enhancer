@@ -17,6 +17,6 @@ It enhances MIUI for better battery backup and performance by tweaking core MIUI
 
 - If you face any issue and wanna completely disable it and then type `su -c "XpGaEzx"` in Termux or any other terminal emulator. This command will disable it's optimization completely. Now you can simply remove it from magisk & reboot device once
 
-# Releases
+# Download
 
 Go to [here](https://www.pling.com/p/1723021/) to download MemeUI Enhancer builds
