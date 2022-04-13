@@ -41,10 +41,8 @@ REPLACE="
 # Remove unnecessary stuff
 do_cleanup() {
   rmtouch "$MODPATH/system/placeholder"
-  rmtouch "$MODPATH/mienhancer64"
-  rmtouch "$MODPATH/mienhancer32"
-  rmtouch "$MODPATH/XpGaEzx32"
-  rmtouch "$MODPATH/XpGaEzx64"  
+  rmtouch "$MODPATH/system/bin/mienhancer64"
+  rmtouch "$MODPATH/system/bin/mienhancer32"
 }
 
 ############
@@ -64,10 +62,10 @@ set_permissions() {
 # Set what you want to be displayed on header of installation process
 info_print() {
   ui_print ""
-  ui_print "**************************"
-  ui_print "   MemeUI Enhancer"
-  ui_print "   By @iamloooper"
-  ui_print "**************************"
+  ui_print "***********************************"
+  ui_print "        MemeUI Enhancer"
+  ui_print "   By iamloooper @ telegram"
+  ui_print "***********************************"
 
   sleep 2
 }
@@ -82,17 +80,16 @@ int_main() {
   ui_print "[*] Installing MemeUI Enhancer..."
 
   [[ "$IS64BIT" == "true" ]] && {
-    mv -f "$MODPATH/mienhancer64" "$MODPATH/system/bin/mienhancer"
-    mv -f "$MODPATH/XpGaEzx64" "$MODPATH/system/bin/XpGaEzx"
+    mv -f "$MODPATH/system/bin/mienhancer64" "$MODPATH/system/bin/mienhancer" 
   } || {
-    mv -f "$MODPATH/mienhancer32" "$MODPATH/system/bin/mienhancer"
-    mv -f "$MODPATH/XpGaEzx32" "$MODPATH/system/bin/XpGaEzx"    
+    mv -f "$MODPATH/system/bin/mienhancer32" "$MODPATH/system/bin/mienhancer"
   }
 
   sleep 2
 
   ui_print ""
   ui_print "[*] Done!"
+  ui_print ""
 
   sleep 1
 
@@ -104,6 +101,6 @@ int_main() {
   ui_print ""
   ui_print "[*] Join @loopprojects & @modulesrepo on Telegram to get more updates"
   ui_print ""
-  ui_print "[*] You can find me at iamloooper @ Telegram for direct support"
+  ui_print "[*] You can find me at iamlooper @ Telegram for direct support"
   sleep 2
 }
