@@ -16,6 +16,7 @@ It enhances MIUI for better battery backup and performance by tweaking core MIUI
 ## Notes
 
 - If you face any issue and wanna completely disable it and then after `su` type `mienhancer --disable` in Termux or any other terminal emulator. This command will disable its optimizations completely. Now, you can simply remove it from magisk & reboot device once.
+- You can see `mienhancer.txt` in Internal storage / Android. It will show you what type of optimizations MemeUI Enhancer has applied. 
 
 # Download
 
