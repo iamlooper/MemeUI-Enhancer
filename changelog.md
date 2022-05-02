@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3 
+
+- Enhanced MIUI processes optimization
+- Tweaked MIUI services optimization logic
+- Removed useless MIUI props (Causes some features to break)
+- Added Misc. MIUI Tweaks
+- Miscellaneous changes & enhancements
+
 ## v0.2
 
 - Added various improvements

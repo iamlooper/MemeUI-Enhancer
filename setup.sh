@@ -8,15 +8,14 @@
 # Config Vars
 ############
 
-# Uncomment if you want to skip mount for your module
-#SKIPMOUNT=true
-# Uncomment if you want to clean old files in module before injecting new module
-#CLEANSERVICE=true
-# Uncomment if you want to load vskel after module info print. If you want to manually load it, consider using load_vksel function
-#AUTOVKSEL=true
-# Uncomment DEBUG if you want store debug logs of installation
-DEBUG=true
-
+# Set this to true if you want to skip mount for your module
+SKIPMOUNT="false"
+# Set this to true if you want to clean old files in module before injecting new module
+CLEANSERVICE="false"
+# Set this to true if you want to load vskel after module info print. If you want to manually load it, consider using load_vksel function
+AUTOVKSEL="false"
+# Set this to true if you want store debug logs of installation
+DEBUG="true"
 
 ############
 # Replace List
@@ -33,17 +32,6 @@ REPLACE_EXAMPLE="
 # Construct your own list here
 REPLACE="
 "
-
-############
-# Cleanup
-############
-
-# Remove unnecessary stuff
-do_cleanup() {
-  rmtouch "$MODPATH/system/placeholder"
-  rmtouch "$MODPATH/system/bin/mienhancer64"
-  rmtouch "$MODPATH/system/bin/mienhancer32"
-}
 
 ############
 # Permissions
@@ -64,7 +52,7 @@ info_print() {
   ui_print ""
   ui_print "***********************************"
   ui_print "        MemeUI Enhancer"
-  ui_print "   By iamloooper @ telegram"
+  ui_print "   By iamlooper @ telegram"
   ui_print "***********************************"
 
   sleep 2
@@ -75,7 +63,7 @@ info_print() {
 ############
 
 # Change the logic to whatever you want
-int_main() {
+init_main() {
   ui_print ""
   ui_print "[*] Installing MemeUI Enhancer..."
 
@@ -99,8 +87,9 @@ int_main() {
   ui_print ""
   ui_print "[*] Report issues to @looptesting on Telegram"
   ui_print ""
-  ui_print "[*] Join @loopprojects & @modulesrepo on Telegram to get more updates"
+  ui_print "[*] Join @loopprojects on Telegram to get more updates"
   ui_print ""
   ui_print "[*] You can find me at iamlooper @ Telegram for direct support"
+
   sleep 2
 }

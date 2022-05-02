@@ -3,7 +3,7 @@
 # Author: LOOPER (iamlooper @ github)
 
 wait_until_boot_complete() {
-  while [ "$(getprop sys.boot_completed)" != "1" ]; do
+  while [[ "$(getprop sys.boot_completed)" != "1" ]]; do
     sleep 2
   done
 }
@@ -11,7 +11,7 @@ wait_until_boot_complete() {
 wait_until_boot_complete
 
 # Sleep until proper init complete
-sleep 60
+sleep 30
 
 # Apply Enhancer
 mienhancer
