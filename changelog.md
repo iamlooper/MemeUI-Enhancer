@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4
+
+- Sync before applying any changes
+- Enhanced system processes optimization process
+- Removed useless tweaks
+- Fixed a critical bug while applying misc. miui tweaks
+- Improved execution speed
+- Miscellaneous refinements
+
 ## v0.3 
 
 - Enhanced MIUI processes optimization
