@@ -128,5 +128,5 @@ rmtouch "$MODPATH/system/bin/mienhancer64"
 
 cd /
 "$BOOTMODE" || recovery_cleanup
-rm -rf "$TMPDIR"
+rmtouch "$TMPDIR"
 exit 0
