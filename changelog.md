@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5
+
+- Change affinity before optimizing prior. of system processes
+- Keep low prior. processes in background
+- Removed potentially useless tweaks
+- Added dex optimization
+- Refactored misc. miui tweaks
+- Compiled using latest Android NDK with latest llvm polly & -O3 flags
+
 ## v0.4
 
 - Sync before applying any changes
