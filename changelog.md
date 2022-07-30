@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.6
+
+- Improved logging system
+- Enhanced various functions
+- Fixed freezing issues
+- Reworked on priority optimization tweaks
+- Use profile-guided compilation in dex opt.
+- Tweaked more MIUI related tweaks
+- Misc. changes & fixes
+
 ## v0.5
 
 - Change affinity before optimizing prior. of system processes
