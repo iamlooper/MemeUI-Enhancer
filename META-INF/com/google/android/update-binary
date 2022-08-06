@@ -15,9 +15,9 @@ ui_print() { echo "$@"; }
 
 load_vksel() { source "$MODPATH/addon/Volume-Key-Selector/install.sh"; }
 
-rmtouch() { [[ -e "$1" ]] && rm -rf "$1" 2>/dev/null; }
+rm_exist() { [[ -e "$1" ]] && rm -rf "$1" 2>/dev/null; }
 
-rmtouch "$TMPDIR"
+rm_exist "$TMPDIR"
 mkdir -p "$TMPDIR"
 
 ####################
@@ -61,7 +61,7 @@ MODPATH="$MODULEROOT/$MODID"
 MODNAME="$(grep_prop "name" "$TMPDIR/module.prop")"
 
 # Create mod paths
-rmtouch "$MODPATH" 2>/dev/null
+rm_exist "$MODPATH" 2>/dev/null
 mkdir -p "$MODPATH"
 
 ##############
@@ -114,13 +114,14 @@ done
 }
 
 # Remove stuffs that don't belong to modules
-rmtouch "$MODPATH/META-INF"
-rmtouch "$MODPATH/addon"
-rmtouch "$MODPATH/setup.sh"
-rmtouch "$MODPATH/LICENSE"
-rmtouch "$MODPATH/README.md"
-rmtouch "$MODPATH/system/bin/mienhancer64"
-  rmtouch "$MODPATH/system/bin/mienhancer32"
+rm_exist "$MODPATH/META-INF"
+rm_exist "$MODPATH/addon"
+rm_exist "$MODPATH/setup.sh"
+rm_exist "$MODPATH/LICENSE"
+rm_exist "$MODPATH/README.md"
+rm_exist "$MODPATH/changelog.md"
+rm_exist "$MODPATH/system/bin/mienhancer64"
+rm_exist "$MODPATH/system/bin/mienhancer32"
 
 ##############
 # Finalizing
@@ -128,5 +129,5 @@ rmtouch "$MODPATH/system/bin/mienhancer64"
 
 cd /
 "$BOOTMODE" || recovery_cleanup
-rmtouch "$TMPDIR"
+rm_exist "$TMPDIR"
 exit 0

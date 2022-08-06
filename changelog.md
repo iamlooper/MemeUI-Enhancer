@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.7
+
+- Improved logging a bit more
+- Adopted new tweaking implementation from AOSP Enhancer
+- Removed useless code from misc. MIUI tweaks
+- Miscellaneous improvements
+
 ## v0.6
 
 - Improved logging system
