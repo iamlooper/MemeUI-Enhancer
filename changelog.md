@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8
+
+- Improved optimization tools
+- Removed various useless code (causing overheads)
+- Enhanced junk cleaner function
+- Refactored main MIUI tweaks
+- Misc. refinements
+
 ## v0.7
 
 - Improved logging a bit more

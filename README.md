@@ -1,4 +1,4 @@
-![MemeUI-Enhancer](https://github.com/iamlooper/MemeUI-Enhancer/raw/main/memeui-enhancer.jpg)
+![MemeUI-Enhancer](https://github.com/iamlooper/MemeUI-Enhancer/raw/main/memeui_enhancer.jpg)
 
 # MemeUI Enhancer
 
