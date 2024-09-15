@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9
+
+- Improved cgroup functions
+- Removed clean junk tweak
+- Refined system processes tweak
+- Refactored packages tweak
+- Misc. changes
+
 ## v0.8
 
 - Improved optimization tools
@@ -43,7 +51,7 @@
 - Improved execution speed
 - Miscellaneous refinements
 
-## v0.3 
+## v0.3
 
 - Enhanced MIUI processes optimization
 - Tweaked MIUI services optimization logic

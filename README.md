@@ -1,23 +1,28 @@
-![MemeUI-Enhancer](https://github.com/iamlooper/MemeUI-Enhancer/raw/main/memeui_enhancer.jpg)
+![MemeUI-Enhancer](https://github.com/iamlooper/MemeUI-Enhancer/raw/main/memeui_enhancer.png)
 
 # MemeUI Enhancer
 
-Enhances MIUI for better battery backup and performance by tweaking core MIUI services.
-
-## Explanation
-
-It enhances MIUI for better battery backup and performance by tweaking core MIUI services which is done by disabling various `com.miui.daemon` services which are not needed and also prioritizing various important system processes, resulting in making overall MIUI experience better and smooth. It also tunes various MIUI props. You will experience improved smoothness, better battery backup and less device heating.
-
-## Requirements
-
-- MIUI 11+
-- Magisk
-
-## Notes
-
-- If you face any issue and wanna completely disable it and then after `su` type `mienhancer --disable` in Termux or any other terminal emulator. This command will disable its optimizations completely. Now, you can simply remove it from magisk & reboot device once.
-- You can see `mienhancer.txt` in Internal storage / Android. It will show you what type of optimizations MemeUI Enhancer has applied. 
+Enhances MIUI/HyperOS for better battery backup and performance.
 
 # Download
 
-Go to [here](https://www.pling.com/p/1723021/) to download MemeUI Enhancer builds.
+[Click here](https://www.pling.com/p/1723021/) to download the MemeUI Enhancer.
+
+## Notes
+
+- You can find the `mienhancer.log` file in Internal Storage/Android. It will show you the types of tweaks MemeUI Enhancer has applied.
+
+## Credits
+
+### People
+
+- [Waze](https://t.me/XelXen) (Designer)
+- [Chirag](https://t.me/selfmuser) (Tester)
+
+### Code Attribution
+
+- [Uperf](https://github.com/yc9559/uperf) (Apache License 2.0)
+
+## Disclosure
+
+This software uses a monetization SDK to support its development and maintenance. The SDK utilizes unused network resources to generate revenue. By installing this software, you acknowledge and agree to the use of this SDK. We prioritize user experience and have chosen this approach to avoid intrusive advertising.

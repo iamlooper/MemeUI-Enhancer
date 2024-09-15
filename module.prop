@@ -1,5 +1,6 @@
 id=memeui_enhancer
 name=MemeUI Enhancer
-version=v0.8
-author=iamlooper @ telegram
-description=Enhances MIUI for better battery backup and performance by tweaking core MIUI services
+version=v0.9
+versionCode=15
+author=iamlooper @ github
+description=Enhances MIUI/HyperOS for better battery backup and performance

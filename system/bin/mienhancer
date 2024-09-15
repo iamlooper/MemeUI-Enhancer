@@ -1,0 +1,452 @@
+#!/system/bin/sh
+# MemeUI Enhancer
+# Author: Looper (iamlooper @ github)
+
+#################
+# Required Tools
+#################
+
+# Logging function
+log() {
+    local log_type=""
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    case $1 in
+        1) log_type="INFO" ;;
+        2) log_type="WARNING" ;;
+        3) log_type="ERROR" ;;
+        0) log_type="UNKNOWN" ;;
+    esac
+    
+    echo "[${timestamp}] [${log_type}] $2" >> "/storage/emulated/0/Android/mienhancer.log"
+}
+
+# Clear log file
+clear_log() {
+    rm -f "/storage/emulated/0/Android/mienhancer.log"
+}
+
+# Terminate service
+terminate_service() {
+    killall -q -9 "$1"
+    stop "$1"  
+}
+
+###################
+# CGroup Functions
+###################
+
+# Get the number of CPU cores
+get_cpu_count() {
+    grep -c ^processor /proc/cpuinfo
+}
+
+# Generate CPU mask for all cores
+get_full_cpu_mask() {
+    local cpu_count=$(get_cpu_count)
+    local mask=1
+    local i=1
+    while [ $i -lt $cpu_count ]; do
+        mask=$((mask | (mask << 1)))
+        i=$((i + 1))
+    done
+    printf '%x' $mask
+}
+
+# Generate CPU mask for half of the cores
+get_half_cpu_mask() {
+    local cpu_count=$(get_cpu_count)
+    local half_count=$((cpu_count / 2))
+    local mask=1
+    local i=1
+    while [ $i -lt $half_count ]; do
+        mask=$((mask | (mask << 1)))
+        i=$((i + 1))
+    done
+    printf '%x' $mask
+}
+
+# Process scan cache
+ps_ret=""
+
+# $1:task_name $2:cgroup_name $3:"cpuset"/"stune"
+change_task_cgroup() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            echo "$temp_tid" >"/dev/$3/$2/tasks"
+        done
+    done
+}
+
+# $1:process_name $2:cgroup_name $3:"cpuset"/"stune"
+change_proc_cgroup() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        comm="$(cat /proc/$temp_pid/comm)"
+        echo $temp_pid >"/dev/$3/$2/cgroup.procs"
+    done
+}
+
+# $1:task_name $2:thread_name $3:cgroup_name $4:"cpuset"/"stune"
+change_thread_cgroup() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            if [ "$(echo $comm | grep -i -E "$2")" != "" ]; then
+                echo "$temp_tid" >"/dev/$4/$3/tasks"
+            fi
+        done
+    done
+}
+
+# $1:task_name $2:cgroup_name $3:"cpuset"/"stune"
+change_main_thread_cgroup() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        comm="$(cat /proc/$temp_pid/comm)"
+        echo $temp_pid >"/dev/$3/$2/tasks"
+    done
+}
+
+# $1:task_name $2:hex_mask(0x00000003 is CPU0 and CPU1)
+change_task_affinity() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            taskset -p "$2" "$temp_tid"
+        done
+    done
+}
+
+# $1:task_name $2:thread_name $3:hex_mask(0x00000003 is CPU0 and CPU1)
+change_thread_affinity() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            if [ "$(echo $comm | grep -i -E "$2")" != "" ]; then
+                taskset -p "$3" "$temp_tid"
+            fi
+        done
+    done
+}
+
+# $1:task_name $2:nice(relative to 120)
+change_task_nice() {
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            renice -n "$2" -p "$temp_tid"
+        done
+    done
+}
+
+# $1:task_name $2:thread_name $3:nice(relative to 120)
+change_thread_nice() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            if [ "$(echo $comm | grep -i -E "$2")" != "" ]; then
+                renice -n "$3" -p "$temp_tid"
+            fi
+        done
+    done
+}
+
+# $1:task_name $2:priority(99-x, 1<=x<=99)
+change_task_rt() {
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            chrt -f -p "$2" "$temp_tid"
+        done
+    done
+}
+
+# $1:task_name $2:thread_name $3:priority(99-x, 1<=x<=99)
+change_thread_rt() {
+    local comm
+    for temp_pid in $(echo "$ps_ret" | grep -i -E "$1" | awk '{print $1}'); do
+        for temp_tid in $(ls "/proc/$temp_pid/task/"); do
+            comm="$(cat /proc/$temp_pid/task/$temp_tid/comm)"
+            if [ "$(echo $comm | grep -i -E "$2")" != "" ]; then
+                chrt -f -p "$3" "$temp_tid"
+            fi
+        done
+    done
+}
+
+# $1:task_name
+change_task_high_prio() {
+    # audio thread nice <= -16
+    change_task_nice "$1" "-15"
+}
+
+# $1:task_name $2:thread_name
+change_thread_high_prio() {
+    # audio thread nice <= -16
+    change_thread_nice "$1" "$2" "-15"
+}
+
+# $1:task_name $2:thread_name
+unpin_thread() {
+    change_thread_cgroup "$1" "$2" "" "cpuset"
+}
+
+# $1:task_name $2:thread_name
+pin_thread_on_pwr() {
+    change_thread_cgroup "$1" "$2" "background" "cpuset"
+}
+
+# $1:task_name $2:thread_name
+pin_thread_on_mid() {
+    unpin_thread "$1" "$2"
+    change_thread_affinity "$1" "$2" "$(get_half_cpu_mask)"
+}
+
+# $1:task_name $2:thread_name
+pin_thread_on_perf() {
+    unpin_thread "$1" "$2"
+    change_thread_affinity "$1" "$2" "$(get_full_cpu_mask)"
+}
+
+# $1:task_name
+unpin_proc() {
+    change_task_cgroup "$1" "" "cpuset"
+}
+
+# $1:task_name
+pin_proc_on_pwr() {
+    change_task_cgroup "$1" "background" "cpuset"
+}
+
+# $1:task_name
+pin_proc_on_mid() {
+    unpin_proc "$1"
+    change_task_affinity "$1" "$(get_half_cpu_mask)"
+}
+
+# $1:task_name
+pin_proc_on_perf() {
+    unpin_proc "$1"
+    change_task_affinity "$1" "$(get_full_cpu_mask)"
+}
+
+rebuild_process_scan_cache() {
+    ps_ret="$(ps -Ao pid,args)"
+}
+
+############################
+# MemeUI Enhancer Functions
+############################
+
+miui_services_tweak() {
+    local services="
+        com.miui.systemAdSolution
+        com.miui.analytics
+        com.xiaomi.joyose/.smartop.gamebooster.receiver.BoostRequestReceiver
+        com.xiaomi.joyose/.smartop.SmartOpService
+        com.xiaomi.joyose.sysbase.MetokClService
+        com.miui.daemon/.performance.cloudcontrol.CloudControlSyncService
+        com.miui.daemon/.performance.statistics.services.GraphicDumpService
+        com.miui.daemon/.performance.statistics.services.AtraceDumpService
+        com.miui.daemon/.performance.SysoptService
+        com.miui.daemon/.performance.MiuiPerfService
+        com.miui.daemon/.performance.server.ExecutorService
+        com.miui.daemon/.mqsas.jobs.EventUploadService
+        com.miui.daemon/.mqsas.jobs.FileUploadService
+        com.miui.daemon/.mqsas.jobs.HeartBeatUploadService
+        com.miui.daemon/.mqsas.providers.MQSProvider
+        com.miui.daemon/.performance.provider.PerfTurboProvider
+        com.miui.daemon/.performance.system.am.SysoptjobService
+        com.miui.daemon/.performance.system.am.MemCompactService
+        com.miui.daemon/.performance.statistics.services.FreeFragDumpService
+        com.miui.daemon/.performance.statistics.services.DefragService
+        com.miui.daemon/.performance.statistics.services.MeminfoService
+        com.miui.daemon/.performance.statistics.services.IonService
+        com.miui.daemon/.performance.statistics.services.GcBoosterService
+        com.miui.daemon/.mqsas.OmniTestReceiver
+    "
+
+    for service in $services; do
+        pm disable "$service"
+    done
+}
+
+restore_miui_services() {
+    local services="
+        com.miui.systemAdSolution
+        com.miui.analytics
+        com.xiaomi.joyose/.smartop.gamebooster.receiver.BoostRequestReceiver
+        com.xiaomi.joyose/.smartop.SmartOpService
+        com.xiaomi.joyose.sysbase.MetokClService
+        com.miui.daemon/.performance.cloudcontrol.CloudControlSyncService
+        com.miui.daemon/.performance.statistics.services.GraphicDumpService
+        com.miui.daemon/.performance.statistics.services.AtraceDumpService
+        com.miui.daemon/.performance.SysoptService
+        com.miui.daemon/.performance.MiuiPerfService
+        com.miui.daemon/.performance.server.ExecutorService
+        com.miui.daemon/.mqsas.jobs.EventUploadService
+        com.miui.daemon/.mqsas.jobs.FileUploadService
+        com.miui.daemon/.mqsas.jobs.HeartBeatUploadService
+        com.miui.daemon/.mqsas.providers.MQSProvider
+        com.miui.daemon/.performance.provider.PerfTurboProvider
+        com.miui.daemon/.performance.system.am.SysoptjobService
+        com.miui.daemon/.performance.system.am.MemCompactService
+        com.miui.daemon/.performance.statistics.services.FreeFragDumpService
+        com.miui.daemon/.performance.statistics.services.DefragService
+        com.miui.daemon/.performance.statistics.services.MeminfoService
+        com.miui.daemon/.performance.statistics.services.IonService
+        com.miui.daemon/.performance.statistics.services.GcBoosterService
+        com.miui.daemon/.mqsas.OmniTestReceiver
+    "
+
+    for service in $services; do
+        pm enable "$service"
+    done
+}
+
+system_properties_tweak() {
+    local properties="
+        persist.sys.usap_pool_enabled true
+        persist.device_config.runtime_native.usap_pool_enabled true
+        vidc.debug.level 0
+        vendor.vidc.debug.level 0
+        vendor.swvdec.log.level 0
+        persist.radio.ramdump 0
+        ro.lmk.debug false
+        ro.lmk.log_stats false
+        persist.sys.lmk.reportkills false
+        dalvik.vm.minidebuginfo false
+        dalvik.vm.dex2oat-minidebuginfo false
+        ro.statsd.enable false
+        persist.vendor.dpm.loglevel 0
+        persist.vendor.dpmhalservice.loglevel 0
+        persist.debug.sf.statistics 0
+        debug.sf.enable_egl_image_tracker 0
+        debug.mdpcomp.logs 0
+        persist.ims.disableDebugLogs 1
+        persist.ims.disableADBLogs 1
+        persist.ims.disableQXDMLogs 1
+        persist.ims.disableIMSLogs 1
+        dalvik.vm.minidebuginfo false
+        dalvik.vm.dex2oat-minidebuginfo false
+        dalvik.vm.check-dex-sum false
+        dalvik.vm.checkjni false
+        dalvik.vm.verify-bytecode false
+        dalvik.gc.type precise
+        persist.sys.miui.sf_cores 6
+        persist.sys.miui_animator_sched.bigcores 6-7
+        persist.sys.enable_miui_booster 0
+    "
+
+    echo "$properties" | while IFS= read -r prop; do
+        [ -n "$prop" ] && setprop $prop
+    done
+}
+
+system_processes_tweak() {
+    local fg_processes="zygote usap surfaceflinger system_server composer"
+    local top_app_processes="$(pm resolve-activity -a android.intent.action.MAIN -c android.intent.category.HOME | grep packageName | head -n 1 | cut -d= -f2) $(ime list | grep packageName | head -n 1 | cut -d= -f2) com.android.systemui"
+    local bg_processes="logd statsd tombstoned incidentd"
+
+    for proc in $fg_processes; do
+        pin_proc_on_perf "$proc"
+        change_task_cgroup "$proc" "foreground" "cpuset"    
+        change_task_nice "$proc" "-20"  
+    done
+
+    for proc in $top_app_processes; do
+        pin_proc_on_perf "$proc"
+        change_task_cgroup "$proc" "top-app" "cpuset"  
+        change_task_nice "$proc" "-20"  
+    done
+
+    for proc in $bg_processes; do
+        pin_proc_on_pwr "$proc"
+        change_task_nice "$proc" "5"  
+    done
+}
+
+packages_tweak() {
+    pm compile -m speed-profile --full -a
+    pm art dexopt-packages -r bg-dexopt
+    pm art cleanup
+}
+
+cmd_tweak() {
+    cmd settings put system anr_debugging_mechanism 0
+    cmd looper_stats disable
+    cmd settings put global netstats_enabled 0
+    cmd device_config put runtime_native_boot disable_lock_profiling true
+    cmd device_config put runtime_native_boot iorap_readahead_enable true
+    cmd settings put global fstrim_mandatory_interval 3600
+    cmd power set-fixed-performance-mode-enabled true
+    cmd activity idle-maintenance
+    cmd thermalservice override-status 0
+    cmd dropbox set-rate-limit 10000 
+}
+
+misc_tweak() {
+    local services="statsd traced cnss_diag tcpdump ipacm-diag ramdump subsystem_ramdump charge_logger com.miui.daemon miuibooster"
+
+    for service in $services; do
+        terminate_service "$service"
+    done
+}
+
+#######
+# Main
+#######
+
+apply_tweaks() {
+    sync
+
+    clear_log
+
+    log 1 "[START] MemeUI Enhancer Tweaks"
+
+    miui_services_tweak
+    log 1 "Completed MIUI Services Tweak"
+
+    system_properties_tweak
+    log 1 "Completed System Properties Tweak"
+
+    rebuild_process_scan_cache
+    system_processes_tweak
+    log 1 "Completed System Processes Tweak"
+    
+    packages_tweak
+    log 1 "Completed Packages Tweak"
+
+    cmd_tweak
+    log 1 "Completed CMD Tweak"
+
+    misc_tweak
+    log 1 "Completed Misc. Tweak"
+
+    log 1 "[END] MemeUI Enhancer Tweaks"
+}
+
+main() {
+    case "$1" in
+        "-e")
+            apply_tweaks &>/dev/null
+            ;;
+        "-d")
+            restore_miui_services &>/dev/null
+            ;;
+        *)
+            echo "Usage: $0 [-e|-d]"
+            echo "  -e: Enable tweaks"
+            echo "  -d: Disable tweaks"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"

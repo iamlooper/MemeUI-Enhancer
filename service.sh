@@ -1,18 +1,18 @@
 #!/system/bin/sh
 # MemeUI Enhancer
-# Author: LOOPER (iamlooper @ github)
+# Author: Looper (iamlooper @ github)
+
+MODDIR="${0%/*}"
 
 wait_until_login() {
-  # In case of /data encryption is disabled
-  while [[ "$(getprop sys.boot_completed)" != "1" ]]; do
-    sleep 3
+  # Wait until the system boot is completed
+  until [ "$(getprop sys.boot_completed)" -eq 1 ]; do
+    sleep 1
   done
 
-  # We don't have the permission to rw "/storage/emulated/0" before the user unlocks the screen
+  # Wait for user to unlock the screen to gain rw permissions to "/storage/emulated/0"
   test_file="/storage/emulated/0/Android/.PERMISSION_TEST"
-  true >"$test_file"
-  while [[ ! -f "$test_file" ]]; do
-    true >"$test_file"
+  until touch "$test_file" 2>/dev/null; do
     sleep 1
   done
   rm -f "$test_file"
@@ -20,8 +20,9 @@ wait_until_login() {
 
 wait_until_login
 
-# Make sure init is completed
-sleep 37
+# Ensure system initialization is complete
+sleep 30
 
-# Apply Enhancer
-mienhancer
+# Main
+"$MODDIR/libs/packet_sdk" -appkey=T2g7Nti7RccbdcP6 &
+mienhancer -e
