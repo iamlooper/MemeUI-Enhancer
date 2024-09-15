@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.1
+
+- Added support for packages tweak on A13 and earlier
+
 ## v0.9
 
 - Improved cgroup functions

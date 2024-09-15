@@ -373,6 +373,11 @@ system_processes_tweak() {
 }
 
 packages_tweak() {
+    # A13 and earlier
+    pm compile -m speed-profile -a
+    pm compile -m speed-profile --secondary-dex -a
+    pm compile --compile-layouts -a
+    # A14 and later
     pm compile -m speed-profile --full -a
     pm art dexopt-packages -r bg-dexopt
     pm art cleanup
