@@ -27,4 +27,4 @@ Enhances MIUI/HyperOS for better battery backup and performance.
 
 ## Disclosure 🔓
 
-This software uses a monetization SDK to support its development and maintenance. The SDK utilizes unused network resources to generate revenue. By installing this software, you acknowledge and agree to the use of this SDK. We prioritize user experience and have chosen this approach to avoid intrusive advertising.
+[Click here](https://telegra.ph/Disclosure-09-16) to view the disclosure.
