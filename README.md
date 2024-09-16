@@ -20,6 +20,7 @@ Enhances MIUI/HyperOS for better battery backup and performance.
 
 - [Waze](https://t.me/XelXen) (Designer)
 - [Chirag](https://t.me/selfmuser) (Tester)
+- [Fluph](https://t.me/fluphish) (Tester)
 
 ### Code Attribution 💻
 
