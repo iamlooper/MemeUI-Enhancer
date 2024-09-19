@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.2
+
+- Improved props tweak
+- Misc. changes
+
 ## v0.9.1
 
 - Added support for packages tweak on A13 and earlier

@@ -2,9 +2,9 @@
 # MemeUI Enhancer
 # Author: Looper (iamlooper @ github)
 
-#################
-# Required Tools
-#################
+##################
+# Misc. Functions
+##################
 
 # Logging function
 log() {
@@ -30,6 +30,19 @@ clear_log() {
 terminate_service() {
     killall -q -9 "$1"
     stop "$1"  
+}
+
+setup_resetprop() {
+    if ! command -v resetprop > /dev/null 2>&1; then
+        if [ -f /data/adb/ksu/bin/resetprop ]; then
+            alias resetprop=/data/adb/ksu/bin/resetprop
+        elif [ -f /data/adb/ap/bin/resetprop ]; then
+            alias resetprop=/data/adb/ap/bin/resetprop
+        else
+            alias resetprop=setprop
+        fi
+        export resetprop
+    fi
 }
 
 ###################
@@ -311,19 +324,13 @@ restore_miui_services() {
 }
 
 system_properties_tweak() {
-    local properties="
-        persist.sys.usap_pool_enabled true
+    local properties="persist.sys.usap_pool_enabled true
         persist.device_config.runtime_native.usap_pool_enabled true
         vidc.debug.level 0
         vendor.vidc.debug.level 0
         vendor.swvdec.log.level 0
         persist.radio.ramdump 0
-        ro.lmk.debug false
-        ro.lmk.log_stats false
         persist.sys.lmk.reportkills false
-        dalvik.vm.minidebuginfo false
-        dalvik.vm.dex2oat-minidebuginfo false
-        ro.statsd.enable false
         persist.vendor.dpm.loglevel 0
         persist.vendor.dpmhalservice.loglevel 0
         persist.debug.sf.statistics 0
@@ -338,14 +345,19 @@ system_properties_tweak() {
         dalvik.vm.check-dex-sum false
         dalvik.vm.checkjni false
         dalvik.vm.verify-bytecode false
-        dalvik.gc.type precise
+        dalvik.gc.type generational_cc
+        dalvik.vm.usejit false
+        dalvik.vm.dex2oat-swap true
+        dalvik.vm.dex2oat-resolve-startup-strings true
+        dalvik.vm.systemservercompilerfilter speed-profile
+        dalvik.vm.systemuicompilerfilter speed-profile
+        dalvik.vm.usap_pool_enabled true
         persist.sys.miui.sf_cores 6
         persist.sys.miui_animator_sched.bigcores 6-7
-        persist.sys.enable_miui_booster 0
-    "
+        persist.sys.enable_miui_booster 0"
 
     echo "$properties" | while IFS= read -r prop; do
-        [ -n "$prop" ] && setprop $prop
+        resetprop $prop
     done
 }
 
@@ -440,6 +452,7 @@ apply_tweaks() {
 main() {
     case "$1" in
         "-e")
+            setup_resetprop
             apply_tweaks &>/dev/null
             ;;
         "-d")
