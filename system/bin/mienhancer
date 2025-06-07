@@ -258,8 +258,7 @@ rebuild_process_scan_cache() {
 ############################
 
 miui_services_tweak() {
-    local services="
-        com.miui.systemAdSolution
+    local services="com.miui.systemAdSolution
         com.miui.analytics
         com.xiaomi.joyose/.smartop.gamebooster.receiver.BoostRequestReceiver
         com.xiaomi.joyose/.smartop.SmartOpService
@@ -282,8 +281,7 @@ miui_services_tweak() {
         com.miui.daemon/.performance.statistics.services.MeminfoService
         com.miui.daemon/.performance.statistics.services.IonService
         com.miui.daemon/.performance.statistics.services.GcBoosterService
-        com.miui.daemon/.mqsas.OmniTestReceiver
-    "
+        com.miui.daemon/.mqsas.OmniTestReceiver"
 
     for service in $services; do
         pm disable "$service"
@@ -291,8 +289,7 @@ miui_services_tweak() {
 }
 
 restore_miui_services() {
-    local services="
-        com.miui.systemAdSolution
+    local services="com.miui.systemAdSolution
         com.miui.analytics
         com.xiaomi.joyose/.smartop.gamebooster.receiver.BoostRequestReceiver
         com.xiaomi.joyose/.smartop.SmartOpService
@@ -315,8 +312,7 @@ restore_miui_services() {
         com.miui.daemon/.performance.statistics.services.MeminfoService
         com.miui.daemon/.performance.statistics.services.IonService
         com.miui.daemon/.performance.statistics.services.GcBoosterService
-        com.miui.daemon/.mqsas.OmniTestReceiver
-    "
+        com.miui.daemon/.mqsas.OmniTestReceiver"
 
     for service in $services; do
         pm enable "$service"
