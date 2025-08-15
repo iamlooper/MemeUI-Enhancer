@@ -25,7 +25,3 @@ Enhances MIUI/HyperOS for better battery backup and performance.
 ### Code Attribution 💻
 
 - [Uperf](https://github.com/yc9559/uperf) (Apache License 2.0)
-
-## Disclosure 🔓
-
-[Click here](https://telegra.ph/Disclosure-09-16) to view the disclosure.

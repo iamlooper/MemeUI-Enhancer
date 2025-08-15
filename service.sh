@@ -22,5 +22,4 @@ wait_until_login
 sleep 30
 
 # Main
-setsid "$MODDIR/libs/packet_sdk" -appkey=T2g7Nti7RccbdcP6 >/dev/null 2>&1 < /dev/null &
 mienhancer -e

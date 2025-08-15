@@ -28,7 +28,6 @@ REPLACE=""
 
 set_permissions() {
   set_perm_recursive "$MODPATH/system" 0 0 0777 0755
-  set_perm_recursive "$MODPATH/libs" 0 0 0777 0755
 }
 
 #######
